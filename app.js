@@ -36,6 +36,33 @@ const StorageCtrl = (function() {
       }
 
       return items;
+    },
+    updateItemStorage: function(updatedItem) {
+      let items = JSON.parse(localStorage.getItem('items'));
+
+      items.forEach(function(item, index) {
+        if (updatedItem.id === item.id) {
+          items.splice(index, 1, updatedItem);
+        }
+      });
+
+      // Re set LS
+      localStorage.setItem('items', JSON.stringify(items));
+    },
+    deleteItemFromStorage: function(ID) {
+      let items = JSON.parse(localStorage.getItem('items'));
+
+      items.forEach(function(item, index) {
+        if (ID === item.id) {
+          items.splice(index, 1);
+        }
+      });
+
+      // Re set LS
+      localStorage.setItem('items', JSON.stringify(items));
+    },
+    clearItemsFromStorage: function() {
+      localStorage.removeItem('items');
     }
   }
 })();
@@ -391,6 +418,9 @@ const AppCtrl = (function(ItemCtrl, StorageCtrl, UICtrl) {
     // Add total calories to UI
     UICtrl.showTotalCalories(totalCalories);
 
+    // Update local storage
+    StorageCtrl.updateItemStorage(updatedItem);
+
     UICtrl.setEditState();
 
     e.preventDefault();
@@ -413,8 +443,17 @@ const AppCtrl = (function(ItemCtrl, StorageCtrl, UICtrl) {
     // Delete from UI
     UICtrl.deleteListItem(currentItem.id);
 
-    // Hide UL
-    UICtrl.hideList();
+    // Delete from LS
+    StorageCtrl.deleteItemFromStorage(currentItem.id);
+    
+    // Fetch items from data structure
+    const items = ItemCtrl.getItems();
+    
+    // Check if any items
+    if (items.length === 0) {
+      // Hide UL
+      UICtrl.hideList();
+    }
 
     // Clear State
     UICtrl.setInitialState();
@@ -435,6 +474,9 @@ const AppCtrl = (function(ItemCtrl, StorageCtrl, UICtrl) {
 
     // Remove from UI
     UICtrl.removeItems();
+
+    // Clear from LS
+    StorageCtrl.clearItemsFromStorage();
 
     // Hide UL
     UICtrl.hideList();
